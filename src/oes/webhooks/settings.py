@@ -93,7 +93,7 @@ def load_settings(config: Optional[Path]) -> Settings:
         inst = converter.structure(doc, Settings)
         loaders.append(ts.loaders.InstanceLoader(inst))
 
-    loaders.append(ts.loaders.EnvLoader("OES_WEBHOOKS"))
+    loaders.append(ts.loaders.EnvLoader("OES_WEBHOOKS_"))
 
     return ts.load_settings(
         Settings,
