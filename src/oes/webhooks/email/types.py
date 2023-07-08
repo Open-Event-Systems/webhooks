@@ -87,6 +87,12 @@ class Email:
         msg = EmailMessage()
         msg.make_mixed()
 
+        msg.add_header("From", self.from_)
+        msg.add_header("To", self.to)
+
+        if self.subject:
+            msg.add_header("Subject", self.subject)
+
         if self.html:
             # HTML with fallback
             alt_part = MIMEPart()

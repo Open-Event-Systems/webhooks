@@ -1,7 +1,7 @@
 """Settings module."""
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
 import typed_settings as ts
 from attrs import define
@@ -15,7 +15,28 @@ class EmailSenderType(str, Enum):
     """An email sender type."""
 
     mock = "mock"
+    smtp = "smtp"
     mailgun = "mailgun"
+
+
+@define(kw_only=True)
+class SMTPSettings:
+    """SMTP settings."""
+
+    server: str
+    """The SMTP server."""
+
+    port: int = 587
+    """The SMTP port."""
+
+    tls: Optional[Literal["ssl", "starttls"]] = "starttls"
+    """The SSL/TLS method."""
+
+    username: str
+    """The SMTP username."""
+
+    password: SecretStr = ts.secret()
+    """The SMTP password."""
 
 
 @define(kw_only=True)
@@ -44,6 +65,9 @@ class EmailSettings:
 
     use: Optional[EmailSenderType] = None
     """The implementation to use."""
+
+    smtp: Optional[SMTPSettings] = None
+    """SMTP settings."""
 
     mailgun: Optional[MailgunSettings] = None
     """Mailgun settings."""

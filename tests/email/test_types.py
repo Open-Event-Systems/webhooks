@@ -117,6 +117,9 @@ def test_make_message():
 
     assert bytes_ == (
         b'Content-Type: multipart/mixed; boundary="' + sep1 + b'"\n'
+        b"From: from@test.com\n"
+        b"To: to@test.com\n"
+        b"Subject: Subject\n"
         b"\n"
         b"--" + sep1 + b"\n"
         b"Content-Type: multipart/alternative;\n"
