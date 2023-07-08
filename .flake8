@@ -1,0 +1,21 @@
+[flake8]
+max-line-length = 88
+docstring-convention = google
+suppress-none-returning = true
+suppress-dummy-args = true
+allow-untyped-defs = true
+allow-untyped-nested = true
+mypy-init-return = true
+
+extend-ignore =
+    # ignore annotations on cls, self, and "protected" functions
+    ANN101,
+    ANN102,
+    ANN202,
+
+    # ignore required docstring on methods, magic methods, and __init__
+    D102,
+    D105,
+    D107,
+
+per-file-ignores = tests/**: D,ANN,NEW

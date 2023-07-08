@@ -1,0 +1,48 @@
+[tool.poetry]
+name = "oes-webhooks"
+version = "0.1.0"
+description = "A collection of useful webhooks"
+authors = ["Wes <wes@anthronewengland.com>"]
+readme = "README.md"
+packages = [{include = "oes", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+quart = "^0.18.4"
+attrs = "^23.1.0"
+cattrs = "^23.1.2"
+uvicorn = {extras = ["standard"], version = "^0.22.0"}
+typing-extensions = "^4.7.1"
+jinja2 = "^3.1.2"
+minify-html = "^0.11.1"
+loguru = "^0.7.0"
+typed-settings = "^23.0.1"
+css-inline = "^0.10.3"
+orjson = "^3.9.2"
+importlib-metadata = "^6.8.0"
+ruamel-yaml = "^0.17.32"
+httpx = "^0.24.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+coverage = "^7.2.7"
+pytest-cov = "^4.1.0"
+pytest-asyncio = "^0.21.0"
+
+[tool.poetry.scripts]
+oes-webhooks = "oes.webhooks.app:run"
+
+[tool.poetry.plugins."oes.webhooks.email"]
+mock = "oes.webhooks.email.mock:mock_email_sender"
+
+[tool.mypy]
+python_version = "3.9"
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
