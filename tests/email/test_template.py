@@ -29,7 +29,7 @@ def test_template_attachments():
     assert attached_objs[0] == Attachment(
         id="attachment1",
         name="attachment.txt",
-        data=b'Attachment: {{ attach("attachment.txt", attachment=true) }}',
+        data=b'Attachment: {{ attach("attachment.txt", attachment=true) }}\n',
         media_type="text/plain",
         attachment_type=AttachmentType.attachment,
     )

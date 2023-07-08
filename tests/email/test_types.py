@@ -25,7 +25,7 @@ def test_make_attachment():
         b"Content-Type: media/special\n"
         b"Content-Transfer-Encoding: base64\n"
         b'Content-Disposition: attachment; filename="test.txt"\n'
-        b"Content-ID: att1\n"
+        b"Content-ID: <att1>\n"
         b"\n"
         b"dGVzdC1kYXRh\n"
     )
@@ -74,7 +74,7 @@ def test_make_html_part():
         b"Content-Type: image/png\n"
         b"Content-Transfer-Encoding: base64\n"
         b'Content-Disposition: inline; filename="file.png"\n'
-        b"Content-ID: att1\n"
+        b"Content-ID: <att1>\n"
         b"\n"
         b"MTIzNA==\n"
         b"\n"
@@ -143,7 +143,7 @@ def test_make_message():
         b"Content-Type: image/png\n"
         b"Content-Transfer-Encoding: base64\n"
         b'Content-Disposition: inline; filename="file.png"\n'
-        b"Content-ID: att1\n"
+        b"Content-ID: <att1>\n"
         b"\n"
         b"MTIzNA==\n"
         b"\n"
@@ -155,7 +155,7 @@ def test_make_message():
         b"Content-Type: application/octet-stream\n"
         b"Content-Transfer-Encoding: base64\n"
         b'Content-Disposition: attachment; filename="file.doc"\n'
-        b"Content-ID: att2\n"
+        b"Content-ID: <att2>\n"
         b"\n"
         b"MTIzNA==\n"
         b"\n"
