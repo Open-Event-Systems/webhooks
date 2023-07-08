@@ -1,5 +1,5 @@
 """Email webhook types."""
-from collections.abc import Awaitable, Callable, Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from email.message import EmailMessage, MIMEPart
 from enum import Enum
 from typing import BinaryIO, Optional, Union
@@ -52,7 +52,8 @@ class Attachment:
             maintype=main_type,
             subtype=subtype,
             disposition=self.attachment_type,
-            cid=self.id,
+            # the @ is "required" but works without it
+            cid=f"<{self.id}>",
             filename=self.name,
         )
 
@@ -113,16 +114,6 @@ class Email:
                 msg.attach(att.make_attachment())
 
         return msg
-
-
-EmailSender: TypeAlias = Callable[[Email], Awaitable]
-"""A callable to send an email."""
-
-
-class EmailSenderType(str, Enum):
-    """An email sender type."""
-
-    mock = "mock"
 
 
 @frozen(kw_only=True)

@@ -49,8 +49,7 @@ class Attachments:
             media_type = type_ or "application/octet-stream"
 
         self._attachments[id_] = Attachment(
-            # the @ is "required" but works without it
-            id=f"<{id_}>",
+            id=id_,
             name=filename,
             data=data,
             media_type=media_type,

@@ -42,7 +42,7 @@ async def send_email(path: str) -> Response:
         logger.error(f"The template {path!r} was not found.")
         return Response(status=404)
 
-    await sender(_email)
+    await sender(_email, settings.email)
 
     logger.info(f"Sent message to {_email.to}")
 

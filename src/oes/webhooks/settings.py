@@ -1,13 +1,35 @@
 """Settings module."""
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 import typed_settings as ts
 from attrs import define
 from ruamel.yaml import YAML
+from typed_settings import SecretStr
 
-from oes.webhooks.email.types import EmailSenderType
 from oes.webhooks.serialization import converter
+
+
+class EmailSenderType(str, Enum):
+    """An email sender type."""
+
+    mock = "mock"
+    mailgun = "mailgun"
+
+
+@define(kw_only=True)
+class MailgunSettings:
+    """Mailgun settings."""
+
+    base_url: str = "https://api.mailgun.net"
+    """The base Mailgun URL."""
+
+    domain: str
+    """The domain to send from."""
+
+    api_key: SecretStr = ts.secret()
+    """The API key."""
 
 
 @define(kw_only=True)
@@ -22,6 +44,9 @@ class EmailSettings:
 
     use: Optional[EmailSenderType] = None
     """The implementation to use."""
+
+    mailgun: Optional[MailgunSettings] = None
+    """Mailgun settings."""
 
 
 @define(kw_only=True)
