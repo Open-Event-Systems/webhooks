@@ -1,0 +1,3 @@
+Subject is {{ subject }}
+Subject is {{ set_subject("Subject") }}
+Subject is {{ subject }}

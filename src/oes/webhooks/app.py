@@ -10,7 +10,7 @@ from hypercorn.typing import ASGIFramework, ASGIReceiveCallable, ASGISendCallabl
 from loguru import logger
 from quart import Quart
 
-from oes.webhooks.email.template import get_loader
+from oes.webhooks.email.template import get_environment
 from oes.webhooks.log import setup_logging
 from oes.webhooks.settings import Settings, load_settings
 
@@ -55,7 +55,7 @@ async def _asgi_main(scope: Scope, recv: ASGIReceiveCallable, send: ASGISendCall
 def configure_app(settings: Settings) -> ASGIFramework:
     """Configure and return the app."""
     app.config["settings"] = settings
-    app.config["email_template_loader"] = get_loader(settings.email.template_path)
+    app.config["email_template_env"] = get_environment(settings.email.template_path)
 
     wrapped = private_only_middleware(app)
     return wrapped
@@ -81,7 +81,7 @@ def log_startup_summary(args: Any, settings: Settings):
     f = {k: v if v else "<d>not enabled</d>" for k, v in features.items()}
 
     logger.opt(colors=True).info(
-        "Feature summary:\n<normal>" f"\tEmail:\t{f['email']}\n" "</normal>"
+        "Feature summary:\n\n<normal>" f"\tEmail:\t{f['email']}\n" "</normal>"
     )
 
 

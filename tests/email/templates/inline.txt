@@ -1,0 +1,1 @@
+Attachment: {{ inline("inline.txt") }}

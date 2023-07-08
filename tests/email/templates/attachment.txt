@@ -1,1 +1,1 @@
-Attachment: {{ attach("attachment.txt", attachment=true) }}
+Attachment: {{ attach("attachment.txt") }}

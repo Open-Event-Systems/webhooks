@@ -1,0 +1,11 @@
+{%- extends "base.txt" %}
+
+{% set subject = default_subject("Verify Your Email") %}
+
+{% block content -%}
+To verify your email, enter the following code:
+
+    {{ code }}
+
+If you didn't request this, simply ignore this message.
+{%- endblock %}

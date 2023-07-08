@@ -10,8 +10,6 @@ import jinja2.sandbox
 from oes.webhooks.email.html import process_html
 from oes.webhooks.email.types import Attachment, AttachmentType
 
-jinja_env = jinja2.sandbox.ImmutableSandboxedEnvironment()
-
 
 class Attachments:
     """Class that allows templates to include attachments."""
@@ -27,16 +25,27 @@ class Attachments:
     def __iter__(self) -> Iterator[Attachment]:
         return iter(self._attachments.values())
 
-    def __call__(
+    def add(
         self,
         path: Union[str, Path],
-        attachment: bool = False,
         name: Optional[str] = None,
         media_type: Optional[str] = None,
+        inline: bool = False,
     ) -> str:
+        """Include the file as an attachment.
+
+        Args:
+            path: The path, relative to the base template directory.
+            name: The filename.
+            media_type: The MIME type.
+            inline: Whether the attachment is inline.
+
+        Returns:
+            The Content-ID value.
+        """
         path_obj = self._base_path / Path(path)
         if not path_obj.is_relative_to(self._base_path):
-            raise ValueError(f"Path is not relative to the base path: {path}")
+            raise ValueError(f"Path is not within the template directory: {path}")
 
         id_ = f"attachment{next(self._ids)}"
         with path_obj.open("rb") as f:
@@ -53,27 +62,105 @@ class Attachments:
             name=filename,
             data=data,
             media_type=media_type,
-            attachment_type=AttachmentType.attachment
-            if attachment
-            else AttachmentType.inline,
+            attachment_type=AttachmentType.inline
+            if inline
+            else AttachmentType.attachment,
         )
 
         return id_
 
+    def attach(
+        self,
+        path: Union[str, Path],
+        name: Optional[str] = None,
+        media_type: Optional[str] = None,
+    ) -> str:
+        """Include the file as an attachment.
 
-def get_loader(base_path: Path) -> jinja2.BaseLoader:
-    """Get a template loader."""
+        Args:
+            path: The path, relative to the base template directory.
+            name: The filename.
+            media_type: The media type.
+
+        Returns:
+            The Content-ID value.
+        """
+        return self.add(path, name, media_type)
+
+    def inline(
+        self,
+        path: Union[str, Path],
+        name: Optional[str] = None,
+        media_type: Optional[str] = None,
+    ) -> str:
+        """Include the file as an inline attachment.
+
+        Args:
+            path: The path, relative to the base template directory.
+            name: The filename.
+            media_type: The media type.
+
+        Returns:
+            The Content-ID value.
+        """
+        return self.add(path, name, media_type, inline=True)
+
+
+class Subject:
+    """Class that allows templates to set the subject."""
+
+    default_subject: Optional[str]
+    subject: Optional[str]
+
+    def __init__(self, default_subject: Optional[str]):
+        self.default_subject = default_subject
+        self.subject = default_subject
+
+    def set_subject(self, subject: str) -> str:
+        """Set and return the subject."""
+        self.subject = subject
+        return subject
+
+    def set_subject_or_default(self, subject: str) -> str:
+        """Set the subject if there is no default."""
+        if self.subject:
+            return self.subject
+        elif self.default_subject:
+            return self.default_subject
+        else:
+            self.subject = subject
+            return subject
+
+    def __str__(self) -> str:
+        return self.subject or self.default_subject or ""
+
+    def __bool__(self) -> bool:
+        return bool(str(self))
+
+
+def get_environment(base_path: Path) -> jinja2.Environment:
+    """Configure a Jinja2 environment.
+
+    Args:
+        base_path: The base template directory.
+    """
     loader = jinja2.FileSystemLoader(base_path)
-    return loader
+    environment = jinja2.sandbox.ImmutableSandboxedEnvironment(loader=loader)
+    return environment
 
 
 def render_message(
-    loader: jinja2.BaseLoader, attachments: Attachments, template_name: str, data: dict
+    env: jinja2.Environment,
+    subject: Subject,
+    attachments: Attachments,
+    template_name: str,
+    data: dict,
 ) -> tuple[str, Optional[str]]:
     """Render the text and HTML messages for an email.
 
     Args:
-        loader: The template loader.
+        env: The Jinja2 environment.
+        subject: A :class:`Subject` instance.
         attachments: An :class:`Attachments` instance.
         template_name: The template name, without an extension.
         data: The data to render the template with.
@@ -82,7 +169,8 @@ def render_message(
         A pair of the text and HTML result.
     """
     text = render_template(
-        loader,
+        env,
+        subject,
         attachments,
         f"{template_name}.txt",
         data,
@@ -90,7 +178,8 @@ def render_message(
 
     try:
         html = render_template(
-            loader,
+            env,
+            subject,
             attachments,
             f"{template_name}.html",
             data,
@@ -103,18 +192,28 @@ def render_message(
 
 
 def render_template(
-    loader: jinja2.BaseLoader,
+    env: jinja2.Environment,
+    subject: Subject,
     attachments: Attachments,
     template_name: str,
     data: dict,
 ) -> str:
     """Load and render the given template."""
-    tmpl = loader.load(
-        jinja_env,
+    tmpl = env.get_template(
         template_name,
-        {
-            "attach": attachments,
+        globals={
+            "set_subject": subject.set_subject,
+            "default_subject": subject.set_subject_or_default,
+            "attach": attachments.attach,
+            "inline": attachments.inline,
         },
     )
-    result = tmpl.render(data)
+
+    result = tmpl.render(
+        {
+            **data,
+            "subject": subject,
+        }
+    )
+
     return result
