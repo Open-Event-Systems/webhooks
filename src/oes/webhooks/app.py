@@ -1,7 +1,8 @@
 """App module."""
 import argparse
+from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import hypercorn
 import uvloop
@@ -65,9 +66,32 @@ def private_only_middleware(app: ASGIFramework) -> ASGIFramework:
     """Middleware that only allows connections from internal networks."""
 
     async def sender(scope: Scope, recv: ASGIReceiveCallable, send: ASGISendCallable):
+        if scope["type"] in ("http", "websocket"):
+            _check_private_only(scope)
+
         await app(scope, recv, send)
 
     return sender
+
+
+def _check_private_only(scope: Scope):
+    host, _ = scope.get("client") or (None, None)
+    if host and not _is_private_address(ip_address(host)):
+        raise RuntimeError(f"Not allowing connection from non-private address {host}")
+
+
+_private_networks = (
+    ip_network("127.0.0.0/8"),
+    ip_network("10.0.0.0/8"),
+    ip_network("172.16.0.0/12"),
+    ip_network("192.168.0.0/16"),
+    ip_network("fd00::/8"),
+    ip_network("::1/128"),
+)
+
+
+def _is_private_address(addr: Union[IPv4Address, IPv6Address]) -> bool:
+    return any(addr in net for net in _private_networks)
 
 
 def log_startup_summary(args: Any, settings: Settings):
