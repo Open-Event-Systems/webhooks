@@ -1,8 +1,9 @@
 [tool.poetry]
-name = "oes-webhooks"
+name = "oes.webhooks"
 version = "0.1.0"
 description = "A collection of useful webhooks"
 authors = ["Wes <wes@anthronewengland.com>"]
+license = "LGPL-3.0-or-later"
 readme = "README.md"
 packages = [{include = "oes", from = "src"}]
 
@@ -31,9 +32,6 @@ pytest-asyncio = "^0.21.0"
 
 [tool.poetry.scripts]
 oes-webhooks = "oes.webhooks.app:run"
-
-[tool.poetry.plugins."oes.webhooks.email"]
-mock = "oes.webhooks.email.mock:mock_email_sender"
 
 [tool.mypy]
 python_version = "3.9"
