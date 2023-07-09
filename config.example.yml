@@ -1,0 +1,31 @@
+---
+# Example config file
+
+# Email webhooks
+email:
+  # Path to the template directory
+  template_path: templates/email
+
+  # What to use to send mail: smtp | mailgun
+  use:
+
+  # The default From address.
+  email_from: Your Name <you@example.com>
+
+  # Settings for using SMTP
+  # smtp:
+
+  #   # The server and port
+  #   server: smtp.example.com
+  #   port: 587
+
+  #   username: you@example.com
+  #   password: password
+
+  #   # null, ssl, or starttls
+  #   tls: starttls
+
+  # Settings for using Mailgun
+  # mailgun:
+  #   domain: example.com
+  #   api_key: api_key
