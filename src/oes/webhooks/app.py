@@ -26,7 +26,7 @@ def run():
     uvloop.install()
 
     asgi_config = hypercorn.Config.from_mapping(
-        bind=args.bind,
+        bind=args.bind or "0.0.0.0:8002",
         debug=args.debug,
         use_reloader=args.reload,
         workers=args.workers,
@@ -119,8 +119,8 @@ def parse_args():
         "-b",
         "--bind",
         type=str,
-        nargs="*",
-        default=["0.0.0.0:8002"],
+        action="append",
+        default=[],
         help="addresses and ports to listen on",
     )
     parser.add_argument(

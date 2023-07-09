@@ -13,7 +13,7 @@ COPY README.md ./
 COPY src/ src/
 RUN /app/bin/pip install --no-cache-dir .
 
-FROM python AS oes-webhooks
+FROM python AS webhooks
 RUN apk add libgcc
 RUN adduser -h /app -H -D python \
     && mkdir /config
@@ -23,5 +23,6 @@ COPY --from=build /app/ /app/
 WORKDIR /app
 USER python
 ENV PATH=$PATH:/app/bin
+EXPOSE 8080
 ENTRYPOINT ["/app/bin/oes-webhooks"]
-CMD ["--config", "/config/config.yml"]
+CMD ["--config", "/config/config.yml", "--bind", "0.0.0.0:8080"]
