@@ -6,7 +6,7 @@ email:
   # Path to the template directory
   template_path: templates/email
 
-  # What to use to send mail: smtp | mailgun
+  # What to use to send mail: null | mock | smtp | mailgun
   use:
 
   # The default From address.

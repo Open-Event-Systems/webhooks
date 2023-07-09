@@ -37,11 +37,15 @@ _semaphore = Semaphore(1)
 
 async def mock_email_sender(email: Email, settings: EmailSettings):
     """Mock email sender."""
-    msg = await asyncio.to_thread(email.get_message)
-    _set_date(msg)
-    msg_str = bytes(msg).decode()
-
-    logger.info(f"Mock send:\n\n{msg_str}")
+    logger.info(
+        "Mock sending email:\n"
+        "\n"
+        f"To: {email.to}\n"
+        f"From: {email.from_}\n"
+        f"Subject: {email.subject}\n"
+        "\n"
+        f"{email.text}\n"
+    )
 
 
 async def smtp_email_sender(email: Email, settings: EmailSettings):
