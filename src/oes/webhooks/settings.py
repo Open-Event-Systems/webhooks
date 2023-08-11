@@ -4,11 +4,10 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import typed_settings as ts
-from attrs import define
+from attrs import define, field
 from ruamel.yaml import YAML
-from typed_settings import SecretStr
-
-from oes.webhooks.serialization import converter
+from typed_settings import EnvLoader, FileLoader, SecretStr
+from typed_settings.types import OptionList, SettingsClass, SettingsDict
 
 
 class EmailSenderType(str, Enum):
@@ -23,7 +22,7 @@ class EmailSenderType(str, Enum):
 class SMTPSettings:
     """SMTP settings."""
 
-    server: str
+    server: str = "localhost"
     """The SMTP server."""
 
     port: int = 587
@@ -32,10 +31,10 @@ class SMTPSettings:
     tls: Optional[Literal["ssl", "starttls"]] = "starttls"
     """The SSL/TLS method."""
 
-    username: str
+    username: str = ""
     """The SMTP username."""
 
-    password: SecretStr = ts.secret()
+    password: SecretStr = ts.secret(default="")
     """The SMTP password."""
 
 
@@ -46,7 +45,7 @@ class MailgunSettings:
     base_url: str = "https://api.mailgun.net"
     """The base Mailgun URL."""
 
-    domain: str
+    domain: str = ""
     """The domain to send from."""
 
     api_key: SecretStr = ts.secret()
@@ -77,7 +76,7 @@ class EmailSettings:
 class Settings:
     """Settings object."""
 
-    email: EmailSettings = EmailSettings()
+    email: EmailSettings = field(factory=EmailSettings)
 
 
 yaml = YAML(typ="safe")
@@ -87,15 +86,23 @@ def load_settings(config: Optional[Path]) -> Settings:
     """Load the settings."""
     loaders = []
 
-    if config:
-        with config.open() as f:
-            doc = yaml.load(f)
-        inst = converter.structure(doc, Settings)
-        loaders.append(ts.loaders.InstanceLoader(inst))
+    if config is not None:
+        loaders.append(
+            FileLoader(
+                {
+                    "*.yml": _yaml_format,
+                    "*.yaml": _yaml_format,
+                },
+                (config,),
+            )
+        )
 
-    loaders.append(ts.loaders.EnvLoader("OES_WEBHOOKS_"))
+    loaders.append(EnvLoader("OES_WEBHOOKS_"))
 
-    return ts.load_settings(
-        Settings,
-        loaders,
-    )
+    return ts.load_settings(Settings, loaders)
+
+
+def _yaml_format(
+    path: Path, settings_cls: SettingsClass, options: OptionList
+) -> SettingsDict:
+    return yaml.load(path)

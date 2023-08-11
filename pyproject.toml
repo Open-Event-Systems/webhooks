@@ -22,7 +22,9 @@ orjson = "^3.9.2"
 importlib-metadata = "^6.8.0"
 ruamel-yaml = "^0.17.32"
 httpx = "^0.24.1"
-hypercorn = {extras = ["uvloop"], version = "^0.14.3"}
+uvicorn = {version = "^0.23.2", extras = ["standard"]}
+oes-util = { git = "https://github.com/Open-Event-Systems/utils.git", rev = "38a763c244d6", subdirectory = "python" }
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

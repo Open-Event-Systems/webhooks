@@ -1,13 +1,11 @@
 """App module."""
 import argparse
+import logging
 from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Union
 
-import hypercorn
-import uvloop
-from hypercorn.run import run as hypercorn_run
-from hypercorn.typing import ASGIFramework, ASGIReceiveCallable, ASGISendCallable, Scope
+import uvicorn
 from loguru import logger
 from quart import Quart
 
@@ -16,45 +14,38 @@ from oes.webhooks.log import setup_logging
 from oes.webhooks.settings import Settings, load_settings
 
 app = Quart(__name__)
-_configured_app: Optional[ASGIFramework] = None
 
 
 def run():
     """Main entry point."""
-    global _configured_app
     args = parse_args()
-    uvloop.install()
-
-    asgi_config = hypercorn.Config.from_mapping(
-        bind=args.bind or "0.0.0.0:8002",
-        debug=args.debug,
-        use_reloader=args.reload,
-        workers=args.workers,
-    )
-
-    asgi_config.application_path = "oes.webhooks.app:_asgi_main"
     settings = load_settings(args.config)
     setup_logging(args.debug)
 
-    log_startup_summary(args, settings)
-
-    hypercorn_run(asgi_config)
-
-
-async def _asgi_main(scope: Scope, recv: ASGIReceiveCallable, send: ASGISendCallable):
-    global _configured_app
-    if _configured_app is None:
-        args = parse_args()
-        settings = load_settings(args.config)
-        setup_logging(args.debug)
-
-        _configured_app = configure_app(settings)
-
-    return await _configured_app(scope, recv, send)
+    log_startup_summary(settings)
+    uvicorn.run(
+        "oes.webhooks.app:_get_app",
+        factory=True,
+        workers=args.workers,
+        reload=args.reload,
+        host=args.bind,
+        port=args.port,
+        log_level=logging.DEBUG if args.debug else None,
+        log_config=None,
+    )
 
 
-def configure_app(settings: Settings) -> ASGIFramework:
+def _get_app():
+    args = parse_args()
+    settings = load_settings(args.config)
+    setup_logging(args.debug)
+    return configure_app(settings)
+
+
+def configure_app(settings):
     """Configure and return the app."""
+    import oes.webhooks.email.views  # noqa
+
     app.config["settings"] = settings
     app.config["email_template_env"] = get_environment(settings.email.template_path)
 
@@ -62,10 +53,10 @@ def configure_app(settings: Settings) -> ASGIFramework:
     return wrapped
 
 
-def private_only_middleware(app: ASGIFramework) -> ASGIFramework:
+def private_only_middleware(app):
     """Middleware that only allows connections from internal networks."""
 
-    async def sender(scope: Scope, recv: ASGIReceiveCallable, send: ASGISendCallable):
+    async def sender(scope, recv, send):
         if scope["type"] in ("http", "websocket"):
             _check_private_only(scope)
 
@@ -74,7 +65,7 @@ def private_only_middleware(app: ASGIFramework) -> ASGIFramework:
     return sender
 
 
-def _check_private_only(scope: Scope):
+def _check_private_only(scope):
     host, _ = scope.get("client") or (None, None)
     if host and not _is_private_address(ip_address(host)):
         raise RuntimeError(f"Not allowing connection from non-private address {host}")
@@ -94,7 +85,7 @@ def _is_private_address(addr: Union[IPv4Address, IPv6Address]) -> bool:
     return any(addr in net for net in _private_networks)
 
 
-def log_startup_summary(args: Any, settings: Settings):
+def log_startup_summary(settings: Settings):
     """Print startup information to the logger."""
     features = {
         "email": f"<green>enabled</green>, using {settings.email.use}"
@@ -119,9 +110,11 @@ def parse_args():
         "-b",
         "--bind",
         type=str,
-        action="append",
-        default=[],
-        help="addresses and ports to listen on",
+        default="0.0.0.0",
+        help="addresses to bind to",
+    )
+    parser.add_argument(
+        "-p", "--port", type=int, default=8002, help="port to listen on"
     )
     parser.add_argument(
         "-d", "--debug", action="store_true", default=False, help="enable debug logging"
@@ -137,6 +130,3 @@ def parse_args():
     )
 
     return parser.parse_args()
-
-
-import oes.webhooks.email.views  # noqa
