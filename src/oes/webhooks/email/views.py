@@ -8,6 +8,7 @@ import jinja2
 from cattrs import BaseValidationError, ClassValidationError
 from loguru import logger
 from quart import Response, request
+from werkzeug.exceptions import NotFound, UnprocessableEntity
 
 from oes.webhooks.app import app
 from oes.webhooks.email.sender import get_sender
@@ -23,7 +24,7 @@ async def send_email(path: str) -> Response:
     settings: Settings = app.config["settings"]
 
     if not settings.email.use:
-        return Response(status=404)
+        raise NotFound
 
     sender = get_sender(settings.email.use)
 
@@ -37,10 +38,10 @@ async def send_email(path: str) -> Response:
         )
     except BaseValidationError:
         logger.error(f"Invalid email hook body:\n{traceback.format_exc()}")
-        return Response(status=422)
+        raise UnprocessableEntity
     except jinja2.exceptions.TemplateNotFound:
         logger.error(f"The template {path!r} was not found.")
-        return Response(status=404)
+        raise NotFound
 
     await sender(_email, settings.email)
 

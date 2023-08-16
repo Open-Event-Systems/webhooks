@@ -24,6 +24,9 @@ ruamel-yaml = "^0.17.32"
 httpx = "^0.24.1"
 uvicorn = {version = "^0.23.2", extras = ["standard"]}
 oes-util = { git = "https://github.com/Open-Event-Systems/utils.git", rev = "38a763c244d6", subdirectory = "python" }
+google-api-python-client = {version = "^2.96.0", optional = true}
+google-auth-httplib2 = {version = "^0.1.0", optional = true}
+google-auth-oauthlib = {version = "^1.0.0", optional = true}
 
 
 [tool.poetry.group.dev.dependencies]
@@ -31,6 +34,9 @@ pytest = "^7.4.0"
 coverage = "^7.2.7"
 pytest-cov = "^4.1.0"
 pytest-asyncio = "^0.21.0"
+
+[tool.poetry.extras]
+google = ["google-api-python-client", "google-auth-httplib2", "google-auth-oauthlib"]
 
 [tool.poetry.scripts]
 oes-webhooks = "oes.webhooks.app:run"

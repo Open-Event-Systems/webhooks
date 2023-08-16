@@ -13,19 +13,32 @@ email:
   email_from: Your Name <you@example.com>
 
   # Settings for using SMTP
-  # smtp:
+  smtp:
+    # The server and port
+    server: smtp.example.com
+    port: 587
 
-  #   # The server and port
-  #   server: smtp.example.com
-  #   port: 587
+    username: you@example.com
+    password: password
 
-  #   username: you@example.com
-  #   password: password
-
-  #   # null, ssl, or starttls
-  #   tls: starttls
+    # null, ssl, or starttls
+    tls: starttls
 
   # Settings for using Mailgun
-  # mailgun:
-  #   domain: example.com
-  #   api_key: api_key
+  mailgun:
+    domain: example.com
+    api_key: api_key
+
+# Google Sheets config
+google:
+  # Credentials for the service account, as mapping or string of the JSON data.
+  service_account_credentials:
+
+  # Sheets hooks
+  sheets_hooks:
+    - id: example_hook # the hook ID, specified in the URL
+      sheet_id: # the sheet ID
+      values: # a list of Jinja expressions evaluated with the JSON body
+        - id
+        - name | default("No Name")
+        - "'TRUE' if responded_yes else 'FALSE'"

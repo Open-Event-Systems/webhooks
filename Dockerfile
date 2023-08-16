@@ -6,7 +6,7 @@ WORKDIR /build
 RUN pip install --no-cache-dir poetry wheel
 RUN python -m venv /app
 COPY pyproject.toml poetry.lock ./
-RUN poetry export -o requirements.txt
+RUN poetry export | grep -v '^oes-' > requirements.txt
 RUN pip wheel --no-cache-dir -w deps -r requirements.txt
 RUN /app/bin/pip install --no-cache-dir deps/*
 COPY README.md ./
@@ -23,6 +23,6 @@ COPY --from=build /app/ /app/
 WORKDIR /app
 USER python
 ENV PATH=$PATH:/app/bin
-EXPOSE 8080
+EXPOSE 8002
 ENTRYPOINT ["/app/bin/oes-webhooks"]
-CMD ["--config", "/config/config.yml", "--bind", "0.0.0.0:8080"]
+CMD ["--config", "/config/config.yml", "--bind", "0.0.0.0"]

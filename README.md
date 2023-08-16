@@ -8,6 +8,14 @@ A collection of useful webhooks.
 
       poetry install
 
+  - Specify extras flags to use additional features:
+
+        poetry install -E google
+
+  - The following extras are available:
+
+    - `google` - add Google Sheets hook support
+
 - Install [pre-commit](https://pre-commit.com/) and run:
 
       pre-commit install
@@ -49,6 +57,13 @@ Any additional properties will be made available to the template rendering the e
 
 The `path` parameter will be used to look up the template within the `template_path` in
 the configuration.
+
+#### `POST /sheets/<hook_id>`
+
+Append a row to a Google Sheet.
+
+The `path` parameter corresponds to a Sheets hook ID in the configuration. The row
+template will be evaluated with the properties of the JSON body.
 
 ##### Templates
 

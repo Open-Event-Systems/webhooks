@@ -1,9 +1,8 @@
 """App module."""
 import argparse
+import contextlib
 import logging
-from ipaddress import IPv4Address, IPv6Address, ip_address, ip_network
 from pathlib import Path
-from typing import Union
 
 import uvicorn
 from loguru import logger
@@ -44,45 +43,21 @@ def _get_app():
 
 def configure_app(settings):
     """Configure and return the app."""
-    import oes.webhooks.email.views  # noqa
-
     app.config["settings"] = settings
     app.config["email_template_env"] = get_environment(settings.email.template_path)
 
-    wrapped = private_only_middleware(app)
-    return wrapped
+    with contextlib.suppress(ImportError):
+        from oes.webhooks.sheets.client import GoogleSheetsClient
 
+        if settings.google.service_account_credentials:
+            app.config["sheets_client"] = GoogleSheetsClient(
+                settings.google.service_account_credentials
+            )
 
-def private_only_middleware(app):
-    """Middleware that only allows connections from internal networks."""
+    import oes.webhooks.email.views  # noqa
+    import oes.webhooks.sheets.views  # noqa
 
-    async def sender(scope, recv, send):
-        if scope["type"] in ("http", "websocket"):
-            _check_private_only(scope)
-
-        await app(scope, recv, send)
-
-    return sender
-
-
-def _check_private_only(scope):
-    host, _ = scope.get("client") or (None, None)
-    if host and not _is_private_address(ip_address(host)):
-        raise RuntimeError(f"Not allowing connection from non-private address {host}")
-
-
-_private_networks = (
-    ip_network("127.0.0.0/8"),
-    ip_network("10.0.0.0/8"),
-    ip_network("172.16.0.0/12"),
-    ip_network("192.168.0.0/16"),
-    ip_network("fd00::/8"),
-    ip_network("::1/128"),
-)
-
-
-def _is_private_address(addr: Union[IPv4Address, IPv6Address]) -> bool:
-    return any(addr in net for net in _private_networks)
+    return app
 
 
 def log_startup_summary(settings: Settings):
@@ -90,13 +65,20 @@ def log_startup_summary(settings: Settings):
     features = {
         "email": f"<green>enabled</green>, using {settings.email.use}"
         if settings.email.use
-        else False
+        else False,
+        "sheets": "<green>enabled</green>"
+        if settings.google.service_account_credentials
+        and len(settings.google.sheets_hooks) > 0
+        else False,
     }
 
     f = {k: v if v else "<d>not enabled</d>" for k, v in features.items()}
 
     logger.opt(colors=True).info(
-        "Feature summary:\n\n<normal>" f"\tEmail:\t{f['email']}\n" "</normal>"
+        "Feature summary:\n\n<normal>"
+        f"\tEmail:\t{f['email']}\n"
+        f"\tSheets:\t{f['sheets']}\n"
+        "</normal>"
     )
 
 
