@@ -31,7 +31,7 @@ class GoogleSheetsClient:
         request = values_obj.append(
             spreadsheetId=sheet_id,
             range=range,
-            valueInputOption="RAW",
+            valueInputOption="USER_ENTERED",
             body={
                 "values": values,
             },

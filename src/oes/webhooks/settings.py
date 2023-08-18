@@ -8,12 +8,15 @@ from typing import Literal, NewType, Optional
 import jinja2
 import typed_settings as ts
 from attrs import field
+from jinja2 import ChainableUndefined
 from jinja2.sandbox import ImmutableSandboxedEnvironment
 from ruamel.yaml import YAML
 from typed_settings import EnvLoader, FileLoader, SecretStr
 from typed_settings.types import OptionList, SettingsClass, SettingsDict
 
-_jinja2_env = ImmutableSandboxedEnvironment()
+_jinja2_env = ImmutableSandboxedEnvironment(
+    undefined=ChainableUndefined,
+)
 
 
 class EmailSenderType(str, Enum):
