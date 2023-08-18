@@ -43,5 +43,6 @@ class GoogleSheetsClient:
 def _render_values(hook: GoogleSheetsHook, data: Mapping[str, Any]) -> Sequence[str]:
     columns = []
     for value_tmpl in hook.values:
-        columns.append(str(value_tmpl(data)))
+        result = value_tmpl(data)
+        columns.append(str(result) if result is not None else "")
     return columns
