@@ -6,12 +6,12 @@ WORKDIR /build
 RUN pip install --no-cache-dir poetry wheel
 RUN python -m venv /app
 COPY pyproject.toml poetry.lock ./
-RUN poetry export | grep -v '^oes-' > requirements.txt
+RUN poetry export -E google | grep -v '^oes-' > requirements.txt
 RUN pip wheel --no-cache-dir -w deps -r requirements.txt
 RUN /app/bin/pip install --no-cache-dir deps/*
 COPY README.md ./
 COPY src/ src/
-RUN /app/bin/pip install --no-cache-dir .
+RUN /app/bin/pip install --no-cache-dir .[google]
 
 FROM python AS webhooks
 RUN apk add libgcc
