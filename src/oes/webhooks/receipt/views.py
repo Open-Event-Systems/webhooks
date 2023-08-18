@@ -15,7 +15,7 @@ async def send_receipt():
     body = await request.get_json()
 
     email = _get_email(body["cart_data"])
-    total = _get_total_without_modifiers(body["cart_data"])
+    total = _get_total_without_modifiers(body["pricing_result"])
     if email and total != 0:
         # kind of hacky to re-use a view
         res = await _client.post(
@@ -43,9 +43,9 @@ def _get_email(cart_data: dict) -> Optional[str]:
     return None
 
 
-def _get_total_without_modifiers(cart_data: dict) -> int:
+def _get_total_without_modifiers(pricing_result: dict) -> int:
     total = 0
-    for reg in cart_data["registrations"]:
+    for reg in pricing_result["registrations"]:
         for line_item in reg["line_items"]:
             total += line_item["price"]
     return total
