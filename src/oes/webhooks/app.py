@@ -55,6 +55,7 @@ def configure_app(settings):
             )
 
     import oes.webhooks.email.views  # noqa
+    import oes.webhooks.receipt.views  # noqa
     import oes.webhooks.sheets.views  # noqa
 
     return app

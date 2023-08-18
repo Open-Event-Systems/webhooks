@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+<p>Your registration is complete! You can view your receipt at the following link:</p>
+<a href="https://example.com/receipt/{{ checkout.receipt_id }}">
+    https://example.com/receipt/{{ checkout.receipt_id }}
+</a>
+{% endblock %}

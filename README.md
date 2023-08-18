@@ -58,6 +58,13 @@ Any additional properties will be made available to the template rendering the e
 The `path` parameter will be used to look up the template within the `template_path` in
 the configuration.
 
+#### `POST /receipt`
+
+Used with a `checkout.closed` event to send an email. Sends an email using the `receipt`
+template with the checkout data in the `checkout` variable.
+
+Skips sending an email if the total (without modifiers) is zero.
+
 #### `POST /sheets/<hook_id>`
 
 Append a row to a Google Sheet.

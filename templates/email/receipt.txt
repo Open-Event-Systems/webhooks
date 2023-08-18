@@ -1,0 +1,12 @@
+{%- extends "base.txt" %}
+
+{% set subject = default_subject("Order Confirmation") %}
+
+{% block content -%}
+Your registration is complete!
+You can view your receipt at the following link:
+
+    https://example.com/receipt/{{ checkout.receipt_id }}
+
+
+{%- endblock %}
